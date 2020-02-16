@@ -6,14 +6,11 @@ from al_utils import RALSASampling
 from data_utils import load_data_nn
 
 FILE = 'data/icml_imdb_small.csv'
-
 ## model type
 MODEL_TYPE = 'AN' #or 'AN'
 SOFTMAX_ATTENTION = True #or 'True' 
-
 if MODEL_TYPE == 'AN':
 	assert SOFTMAX_ATTENTION == True, "Please turn on the parameter 'SOFTMAX_ATTENTION'"
-
 ## neural network
 TOKEN_DIM = 512
 ATT_DIM = 128
@@ -48,21 +45,15 @@ def get_model_params():
 	'SOFTMAX_ATTENTION': SOFTMAX_ATTENTION}
 
 if __name__ == '__main__':
-
 	auc_tracker = []
-
 	for _ in range(N_ROUNDS):
-
 		K.clear_session()
-
 		## load data
 		## pre-compute the features for efficiency
 		## this code is for demonstration and very general
 		trn_ds, tst_ds, val_ds, labeler = load_data_nn(FILE, 
 			MAX_TOKENS, TOKEN_TYPE, TEST_SIZE, VAL_SIZE, INIT_BUDGET)
-
 		print("Active Learning starts")
-
 		## define classifier
 		if MODEL_TYPE == 'RALSA':
 			classifier = RALSA(**get_model_params())
@@ -70,32 +61,22 @@ if __name__ == '__main__':
 			model_params = get_model_params()
 			model_params['SOFTMAX_ATTENTION'] = False
 			classifier = AN(**model_params)
-
 		qs = RALSASampling(trn_ds, val_ds, classifier, SAMPLING)
-
 		## active learning
 		tracker = []
 		tracker.append(qs.get_auc(tst_ds))
-
 		while(trn_ds.len_unlabeled() > int(len(trn_ds) * AL_STOP)):
-		
 			ask_id = qs.make_query(n=int(len(trn_ds) * BUDGET))
-			
 			if type(ask_id) == list:
 				for aid in ask_id:
 					trn_ds.update(aid, labeler[aid])
 			else:
 				trn_ds.update(ask_id, labeler[ask_id])
-			
 			auc = qs.get_auc(tst_ds)
-
 			print(auc)
-
 			tracker.append(auc)
 			K.clear_session()
-
 		auc_tracker.append(tracker)
-
 	if N_ROUNDS > 1:
 		auc_tracker = np.mean(auc_tracker, axis=0).tolist()
 	else:

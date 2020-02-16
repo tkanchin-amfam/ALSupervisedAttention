@@ -13,7 +13,6 @@ import os, shutil
 ## ref: https://stackoverflow.com/questions/43547402/how-to-calculate-f1-macro-in-keras
 '''
 def f1(y_true, y_pred):
-	
 	def recall(y_true, y_pred):
 		"""Recall metric.
 
@@ -67,10 +66,8 @@ class AttLayer(Layer):
 		# size of x :[batch_size, sel_len, attention_dim]
 		# size of u :[batch_size, attention_dim]
 		# uit = tanh(xW+b)
-		
 		uit = K.tanh(K.bias_add(K.dot(x, self.W), self.b))
 		ait = K.squeeze(K.dot(uit, self.u), -1)
-	
 		if self.softmax_attention:
 			ait = K.exp(ait)
 			if mask is not None:
@@ -82,10 +79,8 @@ class AttLayer(Layer):
 			if mask is not None:
 				# Cast the mask to floatX to avoid float64 upcasting in theano
 				ait *= K.cast(mask, K.floatx())	
-		
 		weighted_input = x * K.expand_dims(ait)
 		output = K.sum(weighted_input, axis=1)
-
 		return [output, ait]
 
 	def compute_output_shape(self, input_shape):
@@ -119,7 +114,6 @@ class RALSA(object):
 		else:
 			shutil.rmtree(self.CHECKPOINT_DIR)
 			os.makedirs(self.CHECKPOINT_DIR)
-
 		file_path = '{}/model.h5'.format(self.CHECKPOINT_DIR)
 		self.checkpoint = ModelCheckpoint(file_path, monitor='val_dense_1_f1', save_best_only=True, mode='max')
 		self.model = self.get_model()
@@ -139,7 +133,6 @@ class RALSA(object):
 		return model.predict(data_te)
 
 class AN(object):
-
 	def __init__(self, **kwargs):
 		for k in kwargs.keys():
 			self.__setattr__(k, kwargs[k])
@@ -160,7 +153,6 @@ class AN(object):
 		else:
 			shutil.rmtree(self.CHECKPOINT_DIR)
 			os.makedirs(self.CHECKPOINT_DIR)
-
 		file_path = '{}/model.h5'.format(self.CHECKPOINT_DIR)
 		self.checkpoint = ModelCheckpoint(file_path, monitor='val_f1', save_best_only=True, mode='max')
 		self.model = self.get_model()
@@ -177,7 +169,6 @@ class AN(object):
 	def predict(self, data_te):
 		model = load_model('{}/model.h5'.format(self.CHECKPOINT_DIR), 
 			custom_objects={'AttLayer':AttLayer, 'f1': f1})
-		
 		pred =  model.predict(data_te)
 		return pred, pred
 
@@ -201,14 +192,12 @@ class Predictor(object):
 	def get_att_weights(self, data_te):
 		uit = K.tanh(K.bias_add(K.dot(K.constant(data_te[0]), self.att_weights), self.att_bias))
 		zit = K.dot(uit, self.att_context)
-
 		if self.softmax_attention:
 			ait = K.squeeze(ait, -1)
 			ait = K.exp(ait)
 			ait /= K.cast(K.sum(ait, axis=1, keepdims=True) + K.epsilon(), K.floatx())
 		else:
 			ait = K.sigmoid(K.squeeze(zit, -1))
-
 		return K.eval(ait)
 
 	def predict_proba(self, data_te):
