@@ -1,0 +1,9 @@
+numpy==1.16.1
+nltk==3.4
+tensorflow==1.13.1
+json_tricks==3.12.4
+Keras==2.2.4
+scipy==1.2.0
+pandas==0.24.1
+tensorflow_hub==0.3.0
+scikit_learn==0.22.1
