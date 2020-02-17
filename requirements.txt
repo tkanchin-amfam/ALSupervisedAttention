@@ -1,5 +1,5 @@
 numpy==1.16.1
-nltk==3.4
+nltk==3.4.5
 tensorflow==1.13.1
 json_tricks==3.12.4
 Keras==2.2.4
